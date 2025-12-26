@@ -30,8 +30,7 @@ dangducloc-cd3/
 │       │   │   └── VelocityHelper.java
 │       │   │
 │       │   ├── Model/
-│       │   │   ├── Exploit.java       # 💀 Pre-built exploit class for Log4Shell
-│       │   │   └── Img.java           # Image entity
+│       │   │  └── Img.java           # Image entity
 │       │   │
 │       │   └── Utils/
 │       │       ├── DB_handler.java    # Database connection (hardcoded fallback)
