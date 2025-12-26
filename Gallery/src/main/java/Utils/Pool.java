@@ -46,10 +46,8 @@ public class Pool {
     }
 
     public ArrayList<Img> searchImages(String query) throws SQLException {
-        String sql = "SELECT * FROM imgs WHERE name_by_user LIKE ?";
-        PreparedStatement pre_sta = dbh.prepareStatement(sql);
-        pre_sta.setString(1, "%" + query + "%");
-        ResultSet raw_data = pre_sta.executeQuery();
+        String sql = "SELECT * FROM imgs WHERE name_by_user LIKE "+"'%" + query + "%'";
+        ResultSet raw_data = getConnection().prepareStatement(sql).executeQuery();
 
         ArrayList<Img> images = new ArrayList<>();
         while (raw_data.next()) {

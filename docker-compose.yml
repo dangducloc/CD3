@@ -39,6 +39,8 @@ services:
       dockerfile: dockerfile
     expose:                                # Chỉ expose nội bộ, không ports ra host
       - "8080"
+    ports:
+      - "8080:8080"                     # Cho phép truy cập trực tiếp (nếu cần)
     environment:
       - DB_URL=jdbc:mysql://mysql:3306/pentest_final
       - DB_USER=linh
