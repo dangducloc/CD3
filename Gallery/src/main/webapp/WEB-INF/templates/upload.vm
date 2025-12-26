@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Upload Image - Gallery</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --text: #1a1a1a;
+            --bg: #fafafa;
+            --card-bg: #ffffff;
+            --border: #e0e0e0;
+            --shadow: 0 4px 12px rgba(0,0,0,0.08);
+            --radius: 16px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: var(--primary);
+            font-weight: 700;
+        }
+        .nav-link {
+            display: inline-block;
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+            padding: 8px 16px;
+            border: 2px solid var(--primary);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        .nav-link:hover {
+            background: var(--primary);
+            color: white;
+        }
+        .upload-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+        h2 {
+            margin-bottom: 30px;
+            color: var(--primary);
+            font-size: 1.8rem;
+            text-align: center;
+        }
+        .drop-zone {
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            padding: 60px 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: var(--bg);
+            margin-bottom: 20px;
+        }
+        .drop-zone:hover {
+            border-color: var(--primary);
+            background: rgba(67, 97, 238, 0.02);
+        }
+        .drop-zone i {
+            font-size: 4rem;
+            color: var(--primary);
+            margin-bottom: 20px;
+            display: block;
+        }
+        .drop-zone p {
+            margin: 0 0 10px;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        .drop-zone .hint {
+            font-size: 0.9rem;
+            color: #666;
+            margin: 0;
+        }
+        .file-input { display: none; }
+        .file-info {
+            background: rgba(67, 97, 238, 0.05);
+            border: 1px solid rgba(67, 97, 238, 0.2);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        .file-info p {
+            margin: 0 0 4px;
+            font-weight: 600;
+            color: var(--primary);
+        }
+        .file-info .file-size {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        .upload-btn {
+            width: 100%;
+            padding: 16px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.3s ease;
+            display: none;
+        }
+        .upload-btn:hover {
+            background: #3651d4;
+        }
+        .success-message, .error-message {
+            padding: 16px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+            display: none;
+            font-weight: 500;
+        }
+        .success-message {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error-message {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Upload Image</h1>
+        <a href="/" class="nav-link">
+            <i class="fas fa-arrow-left"></i> Back to Gallery
+        </a>
+    </div>
+
+    <div class="upload-container">
+        <h2>Select Image to Upload</h2>
+
+        <div class="success-message" id="successMessage">
+            <i class="fas fa-check-circle"></i> Image uploaded successfully!
+        </div>
+        <div class="error-message" id="errorMessage">
+            <i class="fas fa-exclamation-triangle"></i> <span id="errorText"></span>
+        </div>
+
+        <form class="upload-form" id="uploadForm" action="upload" method="post" enctype="multipart/form-data">
+            <div class="drop-zone" id="dropZone">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <p>Drag & drop image here or click to select</p>
+                <p class="hint">Only image files (JPG, PNG, GIF, etc.) - Max 10MB</p>
+                <input type="file" name="image" id="fileInput" class="file-input" accept="image/*" required>
+            </div>
+
+            <div class="file-info" id="fileInfo">
+                <p>Selected file: <span id="fileName"></span></p>
+                <p class="file-size">Size: <span id="fileSize"></span></p>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label for="customName" style="display: block; margin-bottom: 8px; font-weight: 600; color: var(--primary);">Custom Image Name:</label>
+                <input type="text" id="customName" name="customName" placeholder="Enter a name for the image..." required
+                       style="width: 100%; padding: 12px; border: 2px solid var(--border); border-radius: 8px; font-size: 1rem; transition: border-color 0.3s;">
+            </  >
+            </div>
+
+            <button type="submit" class="upload-btn" id="uploadBtn">Upload Image</button>
+        </form>
+    </div>
+
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const fileSize = document.getElementById('fileSize');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const successMessage = document.getElementById('successMessage');
+        const errorMessage = document.getElementById('errorMessage');
+        const errorText = document.getElementById('errorText');
+
+        // Check URL params
+        const urlParams = new URLSearchParams(window.location.search);
+
+        if (urlParams.get('error')) {
+            errorText.textContent = decodeURIComponent(urlParams.get('error'));
+            errorMessage.style.display = 'block';
+        }
+
+        // Drag & Drop
+        dropZone.addEventListener('click', () => fileInput.click());
+        ['dragover', 'dragenter'].forEach(e => dropZone.addEventListener(e, ev => {
+            ev.preventDefault();
+            dropZone.style.borderColor = 'var(--primary)';
+            dropZone.style.background = 'rgba(67, 97, 238, 0.05)';
+        }));
+        ['dragleave', 'dragend'].forEach(e => dropZone.addEventListener(e, () => {
+            dropZone.style.borderColor = 'var(--border)';
+            dropZone.style.background = 'var(--bg)';
+        }));
+        dropZone.addEventListener('drop', e => {
+            e.preventDefault();
+            dropZone.style.borderColor = 'var(--border)';
+            dropZone.style.background = 'var(--bg)';
+            if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+        });
+
+        fileInput.addEventListener('change', e => {
+            if (e.target.files.length) handleFile(e.target.files[0]);
+        });
+
+        function handleFile(file) {
+            if (!file.type.startsWith('image/')) {
+                showError('Please select an image file.');
+                return;
+            }
+            if (file.size > 10 * 1024 * 1024) {
+                showError('File too large! Maximum 10MB.');
+                return;
+            }
+            fileName.textContent = file.name;
+            fileSize.textContent = formatFileSize(file.size);
+            fileInfo.style.display = 'block';
+            uploadBtn.style.display = 'block';
+            dropZone.querySelector('i').className = 'fas fa-check-circle';
+            dropZone.querySelector('i').style.color = '#28a745';
+            dropZone.querySelector('p').textContent = 'Image selected successfully!';
+            dropZone.querySelector('.hint').style.display = 'none';
+            hideMessages();
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024, sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function showError(msg) {
+            errorText.textContent = msg;
+            errorMessage.style.display = 'block';
+            successMessage.style.display = 'none';
+        }
+        function hideMessages() {
+            errorMessage.style.display = 'none';
+            successMessage.style.display = 'none';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Gallery - Uploaded Images</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --text: #1a1a1a;
+            --bg: #fafafa;
+            --card-bg: #ffffff;
+            --border: #e0e0e0;
+            --shadow: 0 4px 12px rgba(0,0,0,0.08);
+            --radius: 16px;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        h1 {
+            text-align: center;
+            font-size: 2.2rem;
+            margin: 30px 0 40px;
+            color: var(--primary);
+            font-weight: 700;
+            position: relative;
+        }
+        h1::after {
+            content: '';
+            width: 80px;
+            height: 4px;
+            background: var(--primary);
+            display: block;
+            margin: 12px auto 0;
+            border-radius: 2px;
+        }
+        .masonry {
+            max-width: 1300px;
+            margin: 0 auto;
+            column-count: 4;
+            column-gap: 20px;
+        }
+        .item {
+            background: var(--card-bg);
+            margin-bottom: 20px;
+            border-radius: var(--radius);
+            overflow: hidden;
+            break-inside: avoid;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            position: relative;
+            cursor: pointer;
+        }
+        .item:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.12);
+        }
+        .image-container {
+            position: relative;
+            overflow: hidden;
+            border-radius: var(--radius) var(--radius) 0 0;
+            background: #f0f0f0;
+        }
+        .image-container img {
+            width: 100%;
+            height: auto;
+            display: block;
+            transition: transform 0.4s ease;
+            opacity: 0;
+            animation: fadeIn 0.6s forwards;
+        }
+        .item:hover .image-container img {
+            transform: scale(1.05);
+        }
+        .skeleton {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+        .caption {
+            padding: 16px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            background: white;
+            border-top: 1px solid var(--border);
+        }
+        .caption i {
+            color: var(--primary);
+            font-size: 1.1rem;
+        }
+        /* Responsive */
+        @media (max-width: 1200px) { .masonry { column-count: 3; } }
+        @media (max-width: 900px) { .masonry { column-count: 2; } }
+        @media (max-width: 600px) { .masonry { column-count: 1; column-gap: 0; } }
+        /* Animations */
+        @keyframes fadeIn { to { opacity: 1; } }
+        @keyframes loading { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+        /* Lightbox */
+        .lightbox {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0; top: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.9);
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        .lightbox img {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 12px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+        }
+        .close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: white;
+            font-size: 2rem;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Uploaded Images</h1>
+    <div style="text-align: center; margin-bottom: 40px;">
+        <a href="upload" style="display: inline-block; padding: 12px 24px; background: var(--primary); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; transition: background 0.3s;">
+            <i class="fas fa-plus"></i> Upload New Image
+        </a>
+    </div>
+
+    <!-- Search Form -->
+    <div style="max-width: 600px; margin: 0 auto 40px; background: var(--card-bg); padding: 24px; border-radius: var(--radius); box-shadow: var(--shadow);">
+        <form action="" method="get" style="display: flex; gap: 12px;">
+            <input type="text" name="search" value="$searchQuery" placeholder="Search by image name..." style="flex: 1; padding: 12px; border: 2px solid var(--border); border-radius: 8px; font-size: 1rem; transition: border-color 0.3s;">
+            <button type="submit" style="padding: 12px 24px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: background 0.3s;">
+                <i class="fas fa-search"></i> Search
+            </button>
+            #if($searchQuery && $searchQuery != "")
+            <a href="/VulnApp" style="padding: 12px 16px; background: #6c757d; color: white; text-decoration: none; border-radius: 8px; font-weight: 600; transition: background 0.3s;">
+                <i class="fas fa-times"></i> Clear
+            </a>
+            #end
+        </form>
+    </div>
+
+    #if($images.isEmpty())
+        <p style="text-align: center; color: #666; font-style: italic;">No images uploaded yet.</p>
+    #else
+    <div class="masonry">
+        #foreach($img in $images)
+        <div class="item" onclick="openLightbox('./imgs/$img.name_on_server')">
+            <div class="image-container">
+                <div class="skeleton"></div>
+                <img src="./imgs/$img.name_on_server" alt="$img.name_by_user" onload="this.style.opacity=1; this.previousElementSibling.remove();" />
+            </div>
+            <div class="caption">
+                <i class="fas fa-image"></i>
+                <span>$img.name_by_user</span>
+            </div>
+        </div>
+        #end
+    </div>
+    #end
+
+    <!-- Lightbox -->
+    <div class="lightbox" id="lightbox" onclick="closeLightbox()">
+        <span class="close" onclick="closeLightbox()">&times;</span>
+        <img id="lightbox-img" src="" alt="Large view" />
+    </div>
+
+    <script>
+        function openLightbox(src) {
+            const lightbox = document.getElementById('lightbox');
+            const img = document.getElementById('lightbox-img');
+            img.src = src;
+            lightbox.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeLightbox() {
+            const lightbox = document.getElementById('lightbox');
+            lightbox.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeLightbox();
+        });
+    </script>
+</body>
+</html>

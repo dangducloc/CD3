@@ -1,0 +1,7 @@
+FROM mysql:8.0
+
+# Copy init script
+COPY ./init.sql /docker-entrypoint-initdb.d/
+
+# Optional: Set timezone
+ENV TZ=Asia/Ho_Chi_Minh

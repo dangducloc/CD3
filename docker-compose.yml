@@ -1,0 +1,70 @@
+version: "3.8"
+
+services:
+  nginx:
+    container_name: cd3_nginx
+    build: ./Nginx  # Dockerfile dùng FROM owasp/modsecurity-crs:nginx-alpine
+    image: melp007/cd3_nginx:latest
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - TZ=Asia/Ho_Chi_Minh
+      - BACKEND=http://app:8080
+      - PARANOIA=1
+      - ANOMALY_INBOUND=5
+      - SEC_RULE_ENGINE=On                
+      - AUDIT_ENGINE=RelevantOnly
+      - AUDIT_LOG_FORMAT=JSON
+      - MODSEC_AUDIT_LOG_TYPE=Serial
+      - MODSEC_AUDIT_LOG=/var/log/modsecurity/audit.log 
+    volumes:
+      - ./Nginx/default.conf:/etc/nginx/templates/conf.d/default.conf.template
+      - ./Nginx/ssl:/etc/nginx/ssl:ro   
+      - ./Nginx/logs/modsecurity:/var/log/modsecurity
+      - ./Nginx/logs/nginx:/var/log/nginx
+      - ./Nginx/custom/REQUEST-900-EXCLUSION-RULES-BEFORE-CRS.conf:/etc/modsecurity.d/owasp-crs/rules/REQUEST-900-EXCLUSION-RULES-BEFORE-CRS.conf:ro
+    depends_on:
+      - app
+    networks:
+      - app-net
+
+  app:
+    container_name: cd3_app
+    restart: always
+    image: melp007/cd3_app:latest
+    build:
+      context: ./Gallery
+      dockerfile: dockerfile
+    expose:                                # Chỉ expose nội bộ, không ports ra host
+      - "8080"
+    environment:
+      - DB_URL=jdbc:mysql://mysql:3306/pentest_final
+      - DB_USER=linh
+      - DB_PASSWORD=linh
+      - TZ=Asia/Ho_Chi_Minh
+    depends_on:
+      - mysql
+    networks:
+      - app-net
+
+  mysql:
+    restart: always
+    container_name: cd3_mysql
+    image: melp007/cd3_mysql:latest
+    build: ./Data
+    environment:
+      MYSQL_DATABASE: pentest_final
+      MYSQL_USER: linh
+      MYSQL_PASSWORD: linh
+      MYSQL_ROOT_PASSWORD: "linh"
+      TZ: Asia/Ho_Chi_Minh
+    expose:
+      - "3306"
+    networks:
+      - app-net
+
+networks:
+  app-net:
+    driver: bridge

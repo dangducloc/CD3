@@ -1,0 +1,65 @@
+# --------- Builder: build WAR with Maven ----------
+FROM maven:3.8.6-openjdk-8 AS builder
+WORKDIR /app
+
+# copy pom and fetch dependencies (offline to speed up)
+COPY pom.xml .
+RUN mvn dependency:go-offline -B
+
+# copy sources and build
+COPY src ./src
+RUN mvn package -DskipTests -B
+
+# --------- Runtime: minimal, non-root Tomcat with provided JDK/Tomcat tarballs ----------
+FROM ubuntu:22.04 AS runtime
+
+# metadata / runtime env
+ENV LANG=C.UTF-8 \
+    DEBIAN_FRONTEND=noninteractive \
+    JAVA_HOME=/opt/java \
+    CATALINA_HOME=/opt/tomcat \
+    PATH=/opt/java/bin:/opt/tomcat/bin:$PATH \
+    APP_PORT=8080
+
+# install only required packages (curl for healthcheck and unzip if you need it)
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        ca-certificates \
+        unzip \
+        curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install JDK 8u121
+COPY extra/jdk-8u121-linux-x64.tar.gz /tmp/
+RUN mkdir -p /opt/java \
+    && tar -xzf /tmp/jdk-8u121-linux-x64.tar.gz -C /opt/java --strip-components=1 \
+    && rm -f /tmp/jdk-8u121-linux-x64.tar.gz
+
+# Install Tomcat
+COPY extra/apache-tomcat-8.5.93.tar.gz /tmp/
+RUN mkdir -p /opt/tomcat \
+    && tar -xzf /tmp/apache-tomcat-8.5.93.tar.gz -C /opt/tomcat --strip-components=1 \
+    && rm -rf /opt/tomcat/webapps/*
+
+# --- create tomcat user and set ownership ---
+RUN groupadd -r tomcat && \
+    useradd -r -g tomcat -d /opt/tomcat -s /usr/sbin/nologin tomcat && \
+    chown -R tomcat:tomcat /opt/java /opt/tomcat
+
+# copy WAR from builder stage into webapps
+COPY --from=builder /app/target/Gallery.war /opt/tomcat/webapps/ROOT.war
+RUN chown -R tomcat:tomcat /opt/tomcat/webapps
+
+# switch to non-root tomcat user
+USER tomcat
+
+# expose port and healthcheck (use APP_PORT)
+EXPOSE ${APP_PORT}
+
+# healthcheck should hit the correct port and path; runs as root in Docker engine,
+# but since process runs as tomcat the port is reachable. Use curl's --fail for check.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=90s --retries=3 \
+    CMD curl --fail http://localhost:${APP_PORT}/ || exit 1
+
+# default command (use catalina.sh in foreground)
+ENV CATALINA_OPTS="-Djava.security.egd=file:/dev/./urandom -Djava.awt.headless=true"
+CMD ["catalina.sh", "run"]
